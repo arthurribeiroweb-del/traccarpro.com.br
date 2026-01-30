@@ -1,7 +1,14 @@
 ---
-import streetRoute from '../data/streetRoute.json';
+import simulatedRoutes from '../data/simulatedRoutes.json';
 
 const MAP_ID = 'simulated-map';
+// 5 rotas: Marabá–São Paulo (5) + nova (6) + outras 3
+const all = Array.isArray(simulatedRoutes) ? simulatedRoutes : [];
+const marabaSaoPaulo = all[5];
+const novaRota = all[6];
+const others = all.filter((_, i) => i !== 5 && i !== 6).slice(0, 3);
+const base = [marabaSaoPaulo, novaRota, ...others].filter(Boolean);
+const routes = base.length ? base.slice(0, 5) : all.slice(0, 5);
 ---
 
 <div class="relative overflow-hidden bg-[#0f172a] rounded-b-lg simulated-map-container">
@@ -9,7 +16,7 @@ const MAP_ID = 'simulated-map';
   <span class="absolute bottom-2 left-2 rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/70 bg-black/40 backdrop-blur-sm">Simulação — dados fictícios</span>
 </div>
 
-<script type="application/json" id="street-route" set:html={JSON.stringify(streetRoute)}></script>
+<script type="application/json" id="simulated-routes" set:html={JSON.stringify(routes)}></script>
 
 <script is:inline>
 (function () {
@@ -18,15 +25,15 @@ const MAP_ID = 'simulated-map';
     var el = document.getElementById('simulated-map');
     if (!el) return;
 
-    var routeEl = document.getElementById('street-route');
-    var route = routeEl ? JSON.parse(routeEl.textContent || '[]') : [];
-    if (!route.length) return;
+    var routesEl = document.getElementById('simulated-routes');
+    var routes = routesEl ? JSON.parse(routesEl.textContent || '[]') : [];
+    if (!routes.length) return;
 
     setTimeout(function () {
       if (!document.getElementById('simulated-map')) return;
       var map = L.map('simulated-map', {
-        center: [-23.5485, -46.638],
-        zoom: 14,
+        center: [-15, -48],
+        zoom: 4,
         zoomControl: false,
         attributionControl: false
       });
@@ -34,70 +41,41 @@ const MAP_ID = 'simulated-map';
       L.control.zoom({ position: 'bottomright' }).addTo(map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
+      var colors = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#ec4899'];
+      var allPoints = [];
+      var markers = [];
+      var idxs = [];
+      var tickMs = 300;
+
+      for (var r = 0; r < routes.length; r++) {
+        var route = routes[r];
+        if (!route || route.length === 0) continue;
+        for (var p = 0; p < route.length; p++) allPoints.push(route[p]);
+        L.polyline(route, { color: colors[r % colors.length], weight: 3, opacity: 0.7 }).addTo(map);
+        var carIcon = L.divIcon({
+          className: 'simulated-marker',
+          html: '<span style="display:block;width:16px;height:16px;background:' + colors[r % colors.length] + ';border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>',
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
+        });
+        var m = L.marker(route[0], { icon: carIcon }).addTo(map);
+        markers.push(m);
+        idxs.push(0);
+      }
+
       try {
-        var bounds = L.latLngBounds(route);
-        map.fitBounds(bounds, { padding: [24, 24], maxZoom: 15 });
+        var bounds = L.latLngBounds(allPoints);
+        map.fitBounds(bounds, { padding: [32, 32], maxZoom: 12 });
       } catch (_) {
-        map.setView([-23.5485, -46.638], 14);
+        map.setView([-15, -48], 4);
       }
-
-      L.polyline(route, { color: '#3b82f6', weight: 4, opacity: 0.8 }).addTo(map);
-
-      var n = route.length;
-      var stopIndices = [
-        Math.floor(n * 0.18),
-        Math.floor(n * 0.38),
-        Math.floor(n * 0.58),
-        Math.floor(n * 0.78)
-      ];
-      var stopSet = {};
-      for (var s = 0; s < stopIndices.length; s++) stopSet[stopIndices[s]] = true;
-
-      var pIcon = L.divIcon({
-        className: 'simulated-p-marker',
-        html: '<span class="simulated-p-badge">P</span>',
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
-      });
-      for (var i = 0; i < stopIndices.length; i++) {
-        L.marker(route[stopIndices[i]], { icon: pIcon }).addTo(map);
-      }
-
-      var carIcon = L.divIcon({
-        className: 'simulated-marker',
-        html: '<span style="display:block;width:20px;height:20px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-      });
-      var carIconParado = L.divIcon({
-        className: 'simulated-marker',
-        html: '<span style="display:flex;flex-direction:column;align-items:center;width:40px"><span style="display:block;width:20px;height:20px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span><span style="font-size:9px;font-weight:700;color:#fff;background:#22c55e;padding:2px 4px;border-radius:3px;margin-top:2px;white-space:nowrap">Parado</span></span>',
-        iconSize: [40, 38],
-        iconAnchor: [20, 10]
-      });
-
-      var marker = L.marker(route[0], { icon: carIcon }).addTo(map);
-      var idx = 0;
-      var paused = false;
-      var pauseTicksLeft = 0;
-      var tickMs = 280;
-      var pauseTicks = 8;
 
       setInterval(function () {
-        if (paused) {
-          pauseTicksLeft--;
-          if (pauseTicksLeft <= 0) {
-            paused = false;
-            marker.setIcon(carIcon);
-          }
-          return;
-        }
-        idx = (idx + 1) % route.length;
-        marker.setLatLng(route[idx]);
-        if (stopSet[idx]) {
-          paused = true;
-          pauseTicksLeft = pauseTicks;
-          marker.setIcon(carIconParado);
+        for (var i = 0; i < markers.length; i++) {
+          var route = routes[i];
+          if (!route || route.length === 0) continue;
+          idxs[i] = (idxs[i] + 1) % route.length;
+          markers[i].setLatLng(route[idxs[i]]);
         }
       }, tickMs);
     }, 0);
@@ -113,21 +91,6 @@ const MAP_ID = 'simulated-map';
 
 <style>
   .simulated-marker { background: transparent !important; border: none !important; }
-  .simulated-p-marker { background: transparent !important; border: none !important; }
-  .simulated-p-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    background: #22c55e;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  }
   .simulated-map-container .leaflet-control-zoom { border: none !important; }
   .simulated-map-container .leaflet-control-zoom a {
     background: rgba(17, 17, 17, 0.9) !important;
