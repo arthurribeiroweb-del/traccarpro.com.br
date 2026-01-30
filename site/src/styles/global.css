@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Leaflet: Tailwind preflight reseta img (max-width etc.) e quebra os tiles do mapa */
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+}

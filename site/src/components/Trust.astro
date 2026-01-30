@@ -1,0 +1,25 @@
+---
+const items = [
+  { title: 'Segurança', copy: 'Seus dados criptografados e armazenados com segurança.' },
+  { title: 'Privacidade', copy: 'Não vendemos seus dados. Uso exclusivo do rastreamento.' },
+  { title: 'Suporte', copy: 'Atendimento humano por WhatsApp e e-mail.' },
+  { title: 'Estabilidade', copy: 'Sistema estável e disponível quando você precisar.' },
+];
+---
+<section class="border-b border-border/40 py-16 sm:py-20">
+  <div class="mx-auto max-w-content px-6">
+    <h2 class="text-center text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+      Segurança e transparência
+    </h2>
+    <div class="mx-auto mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        items.map((item) => (
+          <div class="rounded-xl border border-border/60 bg-surface/30 p-5 text-center">
+            <h3 class="font-medium text-white">{item.title}</h3>
+            <p class="mt-2 text-sm text-muted">{item.copy}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

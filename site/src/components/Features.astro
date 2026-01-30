@@ -1,0 +1,32 @@
+---
+const features = [
+  { title: 'Rastreamento em tempo real', copy: 'Veja onde está o veículo no mapa.' },
+  { title: 'Bloqueio remoto', copy: 'Bloqueie e desbloqueie pelo app.' },
+  { title: 'Alertas inteligentes', copy: 'Velocidade, cercas, ignição e outros avisos.' },
+  { title: 'Histórico e cercas', copy: 'Viagens, paradas e zonas de interesse.' },
+];
+---
+<section class="border-b border-border/40 py-16 sm:py-20" id="como-funciona">
+  <div class="mx-auto max-w-content px-6">
+    <h2 class="text-center text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+      Tudo o que você precisa
+    </h2>
+    <ul class="mx-auto mt-12 grid gap-6 sm:grid-cols-2 lg:max-w-3xl lg:mx-auto">
+      {
+        features.map((f) => (
+          <li class="flex gap-4 rounded-xl border border-border/60 bg-surface/30 p-5">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </span>
+            <div>
+              <h3 class="font-medium text-white">{f.title}</h3>
+              <p class="mt-1 text-sm text-muted">{f.copy}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
