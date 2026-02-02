@@ -63,8 +63,19 @@ CTA e FAB usam `https://wa.me/559491796309` com mensagem pré-definida. Alterar 
 
 ## App URL
 
-Links "Acessar o app" apontam para `https://app.traccarpro.com.br`. Ajustar em:
+CTA "Acessar painel" aponta para `https://traccarpro.com.br/login`. Ajustar em:
 
 - `src/components/Header.astro`
-- `src/components/Hero.astro`
-- `src/components/CtaFinal.astro`
+
+## Login cache policy (critical)
+
+To avoid stale login app after deploy:
+
+- App HTML (`/login`): `Cache-Control: no-store`
+- Versioned assets (`/assets/*`, `*.js`, `*.css`): `Cache-Control: public, max-age=31536000, immutable`
+- Legacy service worker endpoint (`/sw.js`): return `410`
+
+Reference configs:
+
+- `scripts/nginx-traccarpro-example.conf`
+- `scripts/nginx-traccarpro-https.conf`
