@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 function getErrorMessage(errorCode: string | null): string | null {
   if (errorCode === 'config') return 'Autenticacao admin ainda nao configurada no servidor.';
@@ -10,16 +10,18 @@ function getErrorMessage(errorCode: string | null): string | null {
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(getErrorMessage(searchParams.get('error')));
+  const [error, setError] = useState<string | null>(null);
+  const [returnTo, setReturnTo] = useState('/admin');
 
-  const returnTo = useMemo(() => {
-    const path = searchParams.get('returnTo') || '/admin';
-    return path.startsWith('/admin') ? path : '/admin';
-  }, [searchParams]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const path = params.get('returnTo') || '/admin';
+    setReturnTo(path.startsWith('/admin') ? path : '/admin');
+    setError(getErrorMessage(params.get('error')));
+  }, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -98,4 +100,3 @@ export default function AdminLoginPage() {
     </main>
   );
 }
-
