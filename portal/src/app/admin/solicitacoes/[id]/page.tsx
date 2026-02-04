@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import AdminLogoutButton from '@/components/AdminLogoutButton';
 
 interface RequestData {
   id: string;
@@ -115,9 +116,12 @@ export default function AdminSolicitacaoDetailPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <Link href="/admin/solicitacoes" className="text-sm text-zinc-500 hover:underline">
-          ← Solicitações
-        </Link>
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/admin/solicitacoes" className="text-sm text-zinc-500 hover:underline">
+            {"<-"} Solicitacoes
+          </Link>
+          <AdminLogoutButton />
+        </div>
         <h1 className="mt-4 text-2xl font-semibold text-white">
           Solicitação #{req.protocolo || req.id.slice(0, 8)}
         </h1>
@@ -265,3 +269,5 @@ export default function AdminSolicitacaoDetailPage() {
     </main>
   );
 }
+
+

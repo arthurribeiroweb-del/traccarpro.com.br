@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import AdminLogoutButton from '@/components/AdminLogoutButton';
 
 interface Application {
   id: string;
@@ -138,9 +139,12 @@ export default function AdminPropostaPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <Link href="/admin" className="text-sm text-zinc-500 hover:underline">
-          ← Admin
-        </Link>
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/admin" className="text-sm text-zinc-500 hover:underline">
+            {"<-"} Admin
+          </Link>
+          <AdminLogoutButton />
+        </div>
         <h1 className="mt-4 text-2xl font-semibold text-white">
           Proposta #{id.slice(0, 8)}
         </h1>
@@ -279,3 +283,5 @@ export default function AdminPropostaPage() {
     </main>
   );
 }
+
+

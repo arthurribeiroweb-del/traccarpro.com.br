@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function CadastroLayout({
   children,
 }: {
@@ -6,9 +8,9 @@ export default function CadastroLayout({
   return (
     <div className="min-h-screen">
       <header className="border-b border-zinc-800 bg-zinc-950/95 px-6 py-4">
-        <a href="/" className="text-lg font-semibold text-white">
+        <Link href="/" className="text-lg font-semibold text-white">
           TraccarPro
-        </a>
+        </Link>
       </header>
       {children}
     </div>
