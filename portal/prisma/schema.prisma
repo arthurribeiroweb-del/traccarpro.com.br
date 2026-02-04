@@ -1,0 +1,133 @@
+// TraccarPro - Portal de Cadastro + Contrato + Onboarding
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Nova solicitação de cadastro (wizard + aprovação + assinatura)
+model SignupRequest {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  type              String   // "PF" | "PJ"
+  name              String?
+  companyName       String?
+  responsibleName   String?
+  cpf               String?
+  cnpj              String?
+  responsibleCpf    String?
+  birthDate         DateTime?
+  email             String
+  phone             String
+  addressJson       String?  // JSON: {cep, rua, numero, complemento, bairro, cidade, uf}
+  vehicleJson       String?  // JSON: {tipo, placa, marcaModelo, ano, cor, observacoes}
+  documentsJson     String?  // JSON: [{key, url, mime, size, uploadedAt}]
+  status            String   @default("DRAFT")
+  // DRAFT | SUBMITTED | NEEDS_FIX | APPROVED | CONTRACT_SENT | SIGNED | EXPIRED
+  rejectReason      String?
+  contractPdfUrl    String?
+  signatureEnvelopeId String?
+  signatureStatus   String?
+  signedAt          DateTime?
+  protocolo         String?  // ex: TRA-2024-0001
+  formaPagamento    String   @default("cartao") // cartao | boleto
+  monthlyPriceCents Int      @default(4990)
+
+  SignupStatusHistory SignupStatusHistory[]
+}
+
+model SignupStatusHistory {
+  id          String   @id @default(cuid())
+  requestId   String
+  request     SignupRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  fromStatus  String
+  toStatus    String
+  actor       String?
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model OnboardingApplication {
+  id                    String    @id @default(cuid())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Dados do cliente (PF ou PJ)
+  tipoPessoa            String    // "PF" | "PJ"
+  nome                  String
+  email                 String
+  telefone              String
+  cpfCnpj               String
+  endereco              String?
+  cidade                String?
+  uf                    String?
+  cep                   String?
+
+  // Veículo
+  tipoVeiculo           String?   // moto, carro, caminhão, etc.
+  placa                 String?
+  modelo                String?
+
+  // Plano
+  formaPagamento        String    // "cartao" | "boleto"
+  monthlyPriceCents     Int       // 4990 ou 5990
+
+  // Status
+  status                String    @default("DRAFT")
+  // DRAFT | SUBMITTED | IN_REVIEW | REJECTED | APPROVED | SIGNING | SIGNED | ACTIVE
+  // CANCEL_REQUESTED | RETURN_PENDING | RETURN_RECEIVED | FEE_DUE | CANCELED
+  // DELINQUENT_SUSPENDED | DELINQUENT_CANCELED
+
+  // Prazo e comodato
+  minTermMonths         Int       @default(6)
+  activatedAt           DateTime?
+  canceledAt            DateTime?
+  delinquentSince       DateTime?
+  cancellationReason    String?   // "cliente" | "inadimplência"
+
+  // Devolução
+  returnDeadlineAt      DateTime?
+  returnTrackingCode    String?
+  equipmentReturnStatus String    @default("NONE") // NONE | PENDING | RECEIVED | WAIVED_LOST
+  equipmentFeeDueCents  Int       @default(0)     // 30000 quando devido
+
+  // Assinatura
+  signedAt              DateTime?
+  contractPdfUrl        String?
+  contractHash          String?
+  acceptedTermsV2       Boolean   @default(false)
+
+  statusHistory StatusHistory[]
+  signatureAudit SignatureAudit[]
+}
+
+model StatusHistory {
+  id             String   @id @default(cuid())
+  applicationId  String
+  application    OnboardingApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus     String
+  toStatus       String
+  actor          String?  // "system" | "admin" | "cliente" | userId
+  note           String?
+  createdAt      DateTime @default(now())
+}
+
+model SignatureAudit {
+  id             String   @id @default(cuid())
+  applicationId  String
+  application    OnboardingApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  ip             String?
+  userAgent      String?
+  acceptedTerms  Boolean
+  acceptedPrivacy Boolean
+  acceptedComodato Boolean
+  otpVerified    Boolean  @default(false)
+  contractHash   String?
+  createdAt      DateTime @default(now())
+}

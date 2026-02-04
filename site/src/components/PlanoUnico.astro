@@ -24,7 +24,13 @@ const itens = [
           </li>
         ))}
       </ul>
-      <div class="mt-8 text-center">
+      <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <a
+          href="/cadastro/revisao"
+          class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3 text-base font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          Iniciar cadastro
+        </a>
         <a
           href={WHATSAPP_PLANO}
           target="_blank"

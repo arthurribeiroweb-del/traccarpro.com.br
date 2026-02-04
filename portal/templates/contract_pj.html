@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contrato de Prestação de Serviço e Comodato - PJ</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 40px; }
+    h1 { font-size: 16px; text-align: center; margin-bottom: 24px; }
+    h2 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; }
+    p { margin: 8px 0; text-align: justify; }
+    .clause { margin-bottom: 16px; }
+    .signature { margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇO E COMODATO</h1>
+  <p><strong>Pessoa Jurídica</strong></p>
+
+  <div class="clause">
+    <h2>1. OBJETO</h2>
+    <p>O presente contrato tem por objeto a prestação de serviço de rastreamento veicular e acesso à plataforma de gestão, nos termos aqui estabelecidos.</p>
+  </div>
+
+  <div class="clause">
+    <h2>2. PREÇO E PAGAMENTO</h2>
+    <p>Mensalidade: R$ {{monthly_card_price}} (cartão) ou R$ {{monthly_boleto_price}} (boleto), conforme forma de pagamento escolhida.</p>
+    <p><strong>Inadimplência:</strong></p>
+    <ul>
+      <li>Atraso ≥ 7 dias: suspensão do acesso/serviço.</li>
+      <li>Atraso ≥ 30 dias: rescisão por inadimplência, sem prejuízo de cobranças pendentes e devolução do comodato.</li>
+    </ul>
+  </div>
+
+  <div class="clause">
+    <h2>3. INSTALAÇÃO</h2>
+    <p>A instalação é serviço de terceiro, contratado e pago diretamente pelo CLIENTE, não compondo o preço deste contrato. A CONTRATADA não responde por danos decorrentes da instalação/retirada por terceiros.</p>
+  </div>
+
+  <div class="clause">
+    <h2>4. COMODATO</h2>
+    <p>O equipamento (rastreador) e o chip são fornecidos em comodato e permanecem propriedade da CONTRATADA.</p>
+  </div>
+
+  <div class="clause">
+    <h2>5. DEVOLUÇÃO NO CANCELAMENTO</h2>
+    <p>Devolução obrigatória do rastreador e chip em até {{return_days}} dias corridos após o cancelamento, com frete por conta do CLIENTE e envio pelos Correios, devendo informar o código de rastreio no portal.</p>
+    <p>A não devolução no prazo, devolução incompleta ou danificada autoriza cobrança da taxa de reposição.</p>
+  </div>
+
+  <div class="clause">
+    <h2>6. PRAZO MÍNIMO E CANCELAMENTO</h2>
+    <p>Vigência mínima de {{min_term_months}} meses.</p>
+    <p>Cancelamento antes do término do prazo mínimo: multa equivalente às mensalidades restantes até completar o prazo mínimo, limitada ao permitido por lei.</p>
+  </div>
+
+  <div class="clause">
+    <h2>7. PERDA, ROUBO, NÃO DEVOLUÇÃO E DANO</h2>
+    <p>Taxa de reposição: R$ {{equipment_fee}} (R$ 300,00) por perda, roubo, não devolução, devolução incompleta ou dano.</p>
+  </div>
+
+  <div class="clause">
+    <h2>8. LIMITAÇÕES TÉCNICAS E RESPONSABILIDADE</h2>
+    <p>O serviço depende de GPS, GSM, energia e cobertura de rede; pode haver indisponibilidade ou atrasos.</p>
+    <p>Comandos remotos dependem de conectividade e integridade do dispositivo; não há garantia de execução imediata.</p>
+    <p>Não constitui garantia absoluta contra furto/roubo; é ferramenta de rastreio e gestão.</p>
+  </div>
+
+  <div class="clause">
+    <h2>9. LGPD</h2>
+    <p>Os dados são tratados conforme a Política de Privacidade, para as finalidades do serviço, com retenção de 5 anos e compartilhamento mínimo (instalador, provedor de assinatura quando aplicável).</p>
+  </div>
+
+  <div class="clause">
+    <h2>10. FORO</h2>
+    <p>Fica eleito o foro da comarca de {{foro_city}}/{{foro_uf}} para dirimir quaisquer litígios.</p>
+  </div>
+
+  <div class="signature">
+    <p>_________________________</p>
+    <p>CLIENTE (PJ)</p>
+    <p>Data: ___/___/______</p>
+  </div>
+</body>
+</html>
