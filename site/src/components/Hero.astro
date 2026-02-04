@@ -1,19 +1,37 @@
 ---
 import SimulatedMap from './SimulatedMap.astro';
-const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=559491796309&text=Ol%C3%A1%2C+gostaria+de+saber+mais+sobre+o+TraccarPro.&type=phone_number&app_absent=0';
+
+const WHATSAPP_CONTRATAR = 'https://api.whatsapp.com/send/?phone=559491796309&text=' + encodeURIComponent(
+  'Olá! Quero contratar o rastreamento TraccarPro.\nPara agilizar:\n1. Qual sua cidade?\n2. Que tipo de veículo? (moto/carro/caminhão/outro)\n3. Melhor horário para instalação? (manhã/tarde)'
+) + '&type=phone_number&app_absent=0';
+
+const bullets = [
+  'Rastreio em tempo real no celular',
+  'Bloqueio e desbloqueio pelo app',
+  'Alertas de velocidade, cercas e ignição',
+  'Histórico de viagens e replay',
+];
 ---
 <section class="border-b border-border/40">
   <div class="mx-auto max-w-content px-6 py-16 sm:py-24 md:py-28">
     <div class="mx-auto max-w-2xl text-center">
       <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-        Seu veículo sob controle!
+        Seu veículo sob controle.
       </h1>
       <p class="mt-4 text-lg text-[#a1a1aa] sm:text-xl">
-        Rastreamento em tempo real, bloqueio remoto e alertas inteligentes. Simples e confiável.
+        Rastreamento em tempo real, bloqueio remoto e alertas. Simples e confiável.
       </p>
+      <ul class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-[#a1a1aa]">
+        {bullets.map((b) => (
+          <li class="flex items-center gap-2">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+            {b}
+          </li>
+        ))}
+      </ul>
       <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <a
-          href={WHATSAPP_URL}
+          href={WHATSAPP_CONTRATAR}
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg bg-accent px-6 py-3 text-base font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
@@ -21,10 +39,10 @@ const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=559491796309&text=Ol%
           Comprar Online
         </a>
         <a
-          href="#como-funciona"
+          href="#preco"
           class="inline-flex min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg border border-border bg-transparent px-6 py-3 text-base font-medium text-[#e5e5e5] transition hover:border-[#3f3f46] hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
         >
-          Ver como funciona
+          Ver preço e como funciona
         </a>
       </div>
     </div>

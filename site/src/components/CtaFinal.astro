@@ -1,5 +1,7 @@
 ---
-const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=559491796309&text=Ol%C3%A1%2C+gostaria+de+saber+mais+sobre+o+TraccarPro.&type=phone_number&app_absent=0';
+const WHATSAPP_SAIBA = 'https://api.whatsapp.com/send/?phone=559491796309&text=' + encodeURIComponent(
+  'Olá! Gostaria de saber mais sobre o TraccarPro.'
+) + '&type=phone_number&app_absent=0';
 ---
 <section class="border-b border-border/40 py-16 sm:py-20">
   <div class="mx-auto max-w-content px-6 text-center">
@@ -8,7 +10,7 @@ const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=559491796309&text=Ol%
     </h2>
     <div class="mt-8">
       <a
-        href={WHATSAPP_URL}
+        href={WHATSAPP_SAIBA}
         target="_blank"
         rel="noopener noreferrer"
         class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-accent px-8 py-3.5 text-base font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
