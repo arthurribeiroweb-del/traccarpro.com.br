@@ -1274,9 +1274,6 @@ function Step4Form({
               Concordo com o tratamento de dados conforme LGPD (finalidades: contrato, suporte, alertas operacionais).
             </span>
           </label>
-          <p className="mt-3 text-xs text-zinc-500">
-            As demais condições (contrato 6 meses, comodato, taxa R$ 300) serão apresentadas no contrato enviado por link para assinatura.
-          </p>
         </div>
       </section>
     </div>
