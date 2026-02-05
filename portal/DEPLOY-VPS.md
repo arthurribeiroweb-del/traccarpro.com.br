@@ -62,6 +62,8 @@ pm2 startup
 
 ## 6) Nginx - proxy para o Portal
 
+**Importante para upload de documentos:** No bloco `server` do Nginx, adicione `client_max_body_size 10M;` (sem isso, uploads acima de 1MB falham).
+
 Se o mesmo dominio tambem usa Traccar em `/login` e `/api`, **nao use** `location /api` generico para o portal.
 Roteie somente os endpoints do portal e coloque essas regras antes de `location /api` e `location /` do Traccar:
 

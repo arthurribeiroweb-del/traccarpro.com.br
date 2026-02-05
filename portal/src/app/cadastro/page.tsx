@@ -1044,19 +1044,31 @@ function Step3Form({
 
     setUploadError(null);
     setUploading(key);
+    const maxAttempts = 3;
+    let lastError: Error | null = null;
     try {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('key', key);
-      const res = await fetch(`/api/signup-requests/${currentId}/documents`, {
-        method: 'POST',
-        body: fd,
-      });
-      let json: { error?: string; path?: string };
-      try {
-        json = await parseJsonResponse(res);
-      } catch {
-        throw new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
+      let res: Response | null = null;
+      let json: { error?: string; path?: string } | null = null;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          res = await fetch(`/api/signup-requests/${currentId}/documents`, {
+            method: 'POST',
+            body: fd,
+          });
+          json = await parseJsonResponse(res);
+          break;
+        } catch {
+          lastError = new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
+          if (attempt < maxAttempts) {
+            await new Promise((r) => setTimeout(r, 800 * attempt));
+          }
+        }
+      }
+      if (!res || !json) {
+        throw lastError ?? new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
       }
       if (!res.ok) {
         if (res.status === 404 || json.error === 'Solicitação não encontrada') {
