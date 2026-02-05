@@ -11,12 +11,13 @@ function AssinaturaContent() {
   const id = searchParams.get('id');
   const [acceptedContract, setAcceptedContract] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-  const [acceptedComodato, setAcceptedComodato] = useState(false);
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [flow, setFlow] = useState<'signup' | 'onboarding' | null>(null);
+  const [contractUrl, setContractUrl] = useState<string | null>(null);
 
+  const acceptedComodato = acceptedContract;
   const allAccepted = acceptedContract && acceptedPrivacy && acceptedComodato;
 
   useEffect(() => {
@@ -29,6 +30,7 @@ function AssinaturaContent() {
       .then(({ flow: f, status: s }) => {
         setFlow(f);
         setStatus(s);
+        setContractUrl(`/api/signup-requests/${id}/contract`);
       })
       .catch(() => {
         fetch(`/api/onboarding/${id}/status`)
@@ -36,6 +38,7 @@ function AssinaturaContent() {
           .then((d) => {
             setFlow('onboarding');
             setStatus(d.status);
+            setContractUrl(d.contractPdfUrl || `/api/onboarding/${id}/generate-contract`);
           })
           .catch(() => setStatus(null));
       });
@@ -88,7 +91,9 @@ function AssinaturaContent() {
     );
   }
 
-  const canSign = ['APPROVED', 'SIGNING'].includes(status || '');
+  const canSign = flow === 'signup'
+    ? status === 'CONTRACT_SENT'
+    : ['APPROVED', 'SIGNING'].includes(status || '');
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -98,6 +103,33 @@ function AssinaturaContent() {
         <p className="mt-2 text-sm text-zinc-400">
           Marque todos os itens abaixo para prosseguir com a assinatura.
         </p>
+
+        <section className="mt-8 rounded-xl border border-zinc-700 bg-zinc-900/50 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-sm font-medium text-white">Contrato</h2>
+            {contractUrl && (
+              <a
+                href={contractUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-400 hover:underline"
+              >
+                Abrir em nova aba
+              </a>
+            )}
+          </div>
+          {contractUrl ? (
+            <iframe
+              src={contractUrl}
+              title="Contrato TraccarPro"
+              className="mt-3 h-[420px] w-full rounded-lg border border-zinc-800 bg-white"
+            />
+          ) : (
+            <p className="mt-3 text-sm text-amber-400">
+              Contrato indisponível no momento. Tente novamente em alguns segundos.
+            </p>
+          )}
+        </section>
 
         {/* Checkboxes obrigatórios */}
         <div className="mt-8 space-y-6" role="group" aria-labelledby="termos-label">
@@ -128,19 +160,6 @@ function AssinaturaContent() {
             />
             <span id="privacy-desc" className="text-sm text-zinc-300">
               Li e aceito a Política de Privacidade (LGPD).
-            </span>
-          </label>
-
-          <label className="flex cursor-pointer gap-4 rounded-xl border border-zinc-700 bg-zinc-900/50 p-5 transition hover:border-zinc-600">
-            <input
-              type="checkbox"
-              checked={acceptedComodato}
-              onChange={(e) => setAcceptedComodato(e.target.checked)}
-              className="mt-1 h-5 w-5 rounded border-zinc-600 bg-zinc-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
-              aria-describedby="comodato-desc"
-            />
-            <span id="comodato-desc" className="text-sm text-zinc-300">
-              Estou ciente do comodato e da devolução em até 10 dias (frete por minha conta) e da taxa de R$ 300,00 em caso de não devolução/perda/roubo/dano.
             </span>
           </label>
         </div>
