@@ -26,6 +26,35 @@ interface RequestData {
   createdAt: string;
 }
 
+interface EditForm {
+  name: string;
+  cpf: string;
+  companyName: string;
+  cnpj: string;
+  responsibleName: string;
+  responsibleCpf: string;
+  email: string;
+  phone: string;
+  address: {
+    cep: string;
+    rua: string;
+    numero: string;
+    complemento: string;
+    bairro: string;
+    cidade: string;
+    uf: string;
+  };
+  vehicle: {
+    tipo: string;
+    placa: string;
+    marcaModelo: string;
+    ano: string;
+    cor: string;
+    renavam: string;
+    chassi: string;
+  };
+}
+
 export default function AdminSolicitacaoDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -35,6 +64,38 @@ export default function AdminSolicitacaoDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showReject, setShowReject] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<EditForm | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const buildForm = (data: RequestData): EditForm => ({
+    name: data.name || '',
+    cpf: data.cpf || '',
+    companyName: data.companyName || '',
+    cnpj: data.cnpj || '',
+    responsibleName: data.responsibleName || '',
+    responsibleCpf: data.responsibleCpf || '',
+    email: data.email || '',
+    phone: data.phone || '',
+    address: {
+      cep: data.addressJson?.cep || '',
+      rua: data.addressJson?.rua || '',
+      numero: data.addressJson?.numero || '',
+      complemento: data.addressJson?.complemento || '',
+      bairro: data.addressJson?.bairro || '',
+      cidade: data.addressJson?.cidade || '',
+      uf: data.addressJson?.uf || '',
+    },
+    vehicle: {
+      tipo: data.vehicleJson?.tipo || '',
+      placa: data.vehicleJson?.placa || '',
+      marcaModelo: data.vehicleJson?.marcaModelo || '',
+      ano: data.vehicleJson?.ano || '',
+      cor: data.vehicleJson?.cor || '',
+      renavam: data.vehicleJson?.renavam || '',
+      chassi: data.vehicleJson?.chassi || '',
+    },
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -43,7 +104,10 @@ export default function AdminSolicitacaoDetailPage() {
         if (!r.ok) throw new Error('Não encontrado');
         return r.json();
       })
-      .then(setReq)
+      .then((data) => {
+        setReq(data);
+        setForm(buildForm(data));
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -87,6 +151,57 @@ export default function AdminSolicitacaoDetailPage() {
     }
   };
 
+  const handleEdit = () => {
+    if (!req) return;
+    setForm(buildForm(req));
+    setSaveError(null);
+    setEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (req) setForm(buildForm(req));
+    setSaveError(null);
+    setEditing(false);
+  };
+
+  const handleSave = async () => {
+    if (!form) return;
+    if (!form.email.trim() || !form.phone.trim()) {
+      setSaveError('E-mail e telefone são obrigatórios.');
+      return;
+    }
+    setActionLoading('save');
+    setSaveError(null);
+    try {
+      const res = await fetch(`/api/admin/signup-requests/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: req?.type,
+          name: form.name,
+          cpf: form.cpf,
+          companyName: form.companyName,
+          cnpj: form.cnpj,
+          responsibleName: form.responsibleName,
+          responsibleCpf: form.responsibleCpf,
+          email: form.email,
+          phone: form.phone,
+          addressJson: form.address,
+          vehicleJson: form.vehicle,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Erro ao salvar');
+      setReq(json);
+      setForm(buildForm(json));
+      setEditing(false);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Erro ao salvar');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -111,6 +226,7 @@ export default function AdminSolicitacaoDetailPage() {
   }
 
   const canApprove = ['SUBMITTED', 'NEEDS_FIX'].includes(req.status);
+  const canEdit = canApprove;
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   return (
@@ -128,7 +244,41 @@ export default function AdminSolicitacaoDetailPage() {
         <p className="mt-1 text-sm text-zinc-400">Status: {req.status}</p>
 
         <section className="mt-8 rounded-xl border border-zinc-700 bg-zinc-900/50 p-6">
-          <h2 className="text-lg font-medium text-white">Dados</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-medium text-white">Dados</h2>
+            {canEdit && !editing && (
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="rounded-lg border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
+              >
+                Editar dados
+              </button>
+            )}
+            {canEdit && editing && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={actionLoading === 'save'}
+                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {actionLoading === 'save' ? 'Salvando...' : 'Salvar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={actionLoading === 'save'}
+                  className="rounded-lg border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+          {saveError && (
+            <p className="mt-3 text-sm text-amber-400">{saveError}</p>
+          )}
           <dl className="mt-4 space-y-2 text-sm">
             <div>
               <dt className="text-zinc-500">Tipo</dt>
@@ -136,35 +286,237 @@ export default function AdminSolicitacaoDetailPage() {
             </div>
             {req.type === 'PF' ? (
               <>
-                <div><dt className="text-zinc-500">Nome</dt><dd className="text-zinc-300">{req.name}</dd></div>
-                <div><dt className="text-zinc-500">CPF</dt><dd className="text-zinc-300">{req.cpf}</dd></div>
+                <div>
+                  <dt className="text-zinc-500">Nome</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <input
+                        value={form?.name ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, name: e.target.value } : prev)}
+                        className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Nome completo"
+                      />
+                    ) : (
+                      req.name
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-zinc-500">CPF</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <input
+                        value={form?.cpf ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, cpf: e.target.value } : prev)}
+                        className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="CPF"
+                      />
+                    ) : (
+                      req.cpf
+                    )}
+                  </dd>
+                </div>
               </>
             ) : (
               <>
-                <div><dt className="text-zinc-500">Razão social</dt><dd className="text-zinc-300">{req.companyName}</dd></div>
-                <div><dt className="text-zinc-500">CNPJ</dt><dd className="text-zinc-300">{req.cnpj}</dd></div>
-                <div><dt className="text-zinc-500">Responsável</dt><dd className="text-zinc-300">{req.responsibleName} (CPF: {req.responsibleCpf})</dd></div>
+                <div>
+                  <dt className="text-zinc-500">Razão social</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <input
+                        value={form?.companyName ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, companyName: e.target.value } : prev)}
+                        className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Razão social"
+                      />
+                    ) : (
+                      req.companyName
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-zinc-500">CNPJ</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <input
+                        value={form?.cnpj ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, cnpj: e.target.value } : prev)}
+                        className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="CNPJ"
+                      />
+                    ) : (
+                      req.cnpj
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-zinc-500">Responsável</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <div className="grid gap-2 md:grid-cols-2">
+                        <input
+                          value={form?.responsibleName ?? ''}
+                          onChange={(e) => setForm((prev) => prev ? { ...prev, responsibleName: e.target.value } : prev)}
+                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                          placeholder="Nome do responsável"
+                        />
+                        <input
+                          value={form?.responsibleCpf ?? ''}
+                          onChange={(e) => setForm((prev) => prev ? { ...prev, responsibleCpf: e.target.value } : prev)}
+                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                          placeholder="CPF do responsável"
+                        />
+                      </div>
+                    ) : (
+                      `${req.responsibleName} (CPF: ${req.responsibleCpf})`
+                    )}
+                  </dd>
+                </div>
               </>
             )}
-            <div><dt className="text-zinc-500">E-mail</dt><dd className="text-zinc-300">{req.email}</dd></div>
-            <div><dt className="text-zinc-500">Telefone</dt><dd className="text-zinc-300">{req.phone}</dd></div>
-            {req.addressJson && (
+            <div>
+              <dt className="text-zinc-500">E-mail</dt>
+              <dd className="text-zinc-300">
+                {editing ? (
+                  <input
+                    value={form?.email ?? ''}
+                    onChange={(e) => setForm((prev) => prev ? { ...prev, email: e.target.value } : prev)}
+                    className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                    placeholder="E-mail"
+                  />
+                ) : (
+                  req.email
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-zinc-500">Telefone</dt>
+              <dd className="text-zinc-300">
+                {editing ? (
+                  <input
+                    value={form?.phone ?? ''}
+                    onChange={(e) => setForm((prev) => prev ? { ...prev, phone: e.target.value } : prev)}
+                    className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                    placeholder="WhatsApp"
+                  />
+                ) : (
+                  req.phone
+                )}
+              </dd>
+            </div>
+            {(req.addressJson || editing) && (
               <div>
                 <dt className="text-zinc-500">Endereço</dt>
                 <dd className="text-zinc-300">
-                  {req.addressJson.rua}, {req.addressJson.numero} — {req.addressJson.bairro}, {req.addressJson.cidade}/{req.addressJson.uf}
+                  {editing ? (
+                    <div className="mt-2 grid gap-2 md:grid-cols-2">
+                      <input
+                        value={form?.address?.cep ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, cep: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="CEP"
+                      />
+                      <input
+                        value={form?.address?.rua ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, rua: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Rua"
+                      />
+                      <input
+                        value={form?.address?.numero ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, numero: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Número"
+                      />
+                      <input
+                        value={form?.address?.complemento ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, complemento: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Complemento"
+                      />
+                      <input
+                        value={form?.address?.bairro ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, bairro: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Bairro"
+                      />
+                      <input
+                        value={form?.address?.cidade ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, cidade: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Cidade"
+                      />
+                      <input
+                        value={form?.address?.uf ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, address: { ...prev.address, uf: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="UF"
+                      />
+                    </div>
+                  ) : (
+                    `${req.addressJson?.rua || ''}, ${req.addressJson?.numero || ''} — ${req.addressJson?.bairro || ''}, ${req.addressJson?.cidade || ''}/${req.addressJson?.uf || ''}`
+                  )}
                 </dd>
               </div>
             )}
-            {req.vehicleJson && (
+            {(req.vehicleJson || editing) && (
               <div>
                 <dt className="text-zinc-500">Veículo</dt>
                 <dd className="text-zinc-300">
-                  {req.vehicleJson.tipo} — {req.vehicleJson.placa} — {req.vehicleJson.marcaModelo}
-                  {req.vehicleJson.ano && ` (${req.vehicleJson.ano})`}
-                  {req.vehicleJson.cor && ` — ${req.vehicleJson.cor}`}
-                  {req.vehicleJson.renavam && ` — Renavam: ${req.vehicleJson.renavam}`}
-                  {req.vehicleJson.chassi && ` — Chassi: ${req.vehicleJson.chassi}`}
+                  {editing ? (
+                    <div className="mt-2 grid gap-2 md:grid-cols-2">
+                      <input
+                        value={form?.vehicle?.tipo ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, tipo: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Tipo"
+                      />
+                      <input
+                        value={form?.vehicle?.placa ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, placa: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Placa"
+                      />
+                      <input
+                        value={form?.vehicle?.marcaModelo ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, marcaModelo: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Marca/Modelo"
+                      />
+                      <input
+                        value={form?.vehicle?.ano ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, ano: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Ano"
+                      />
+                      <input
+                        value={form?.vehicle?.cor ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, cor: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Cor"
+                      />
+                      <input
+                        value={form?.vehicle?.renavam ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, renavam: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Renavam"
+                      />
+                      <input
+                        value={form?.vehicle?.chassi ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, vehicle: { ...prev.vehicle, chassi: e.target.value } } : prev)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="Chassi"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      {req.vehicleJson?.tipo} — {req.vehicleJson?.placa} — {req.vehicleJson?.marcaModelo}
+                      {req.vehicleJson?.ano && ` (${req.vehicleJson.ano})`}
+                      {req.vehicleJson?.cor && ` — ${req.vehicleJson.cor}`}
+                      {req.vehicleJson?.renavam && ` — Renavam: ${req.vehicleJson.renavam}`}
+                      {req.vehicleJson?.chassi && ` — Chassi: ${req.vehicleJson.chassi}`}
+                    </>
+                  )}
                 </dd>
               </div>
             )}
