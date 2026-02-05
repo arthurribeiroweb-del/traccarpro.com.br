@@ -54,13 +54,13 @@ async function compressImageIfPossible(
       .jpeg({ quality: 80, mozjpeg: true })
       .toBuffer();
 
-    // Se por algum motivo sair maior, mantemos o original.
     if (outputBuffer.length >= inputBuffer.length) {
       return { buffer: inputBuffer, mime, ext: getExtensionFromMime(mime), compressed: false };
     }
 
     return { buffer: outputBuffer, mime: 'image/jpeg', ext: 'jpg', compressed: true };
-  } catch {
+  } catch (err) {
+    console.warn('[documents] sharp compression failed, using original:', err instanceof Error ? err.message : err);
     return { buffer: inputBuffer, mime, ext: getExtensionFromMime(mime), compressed: false };
   }
 }
@@ -152,7 +152,14 @@ export async function POST(
       message: 'Arquivo enviado com sucesso',
     });
   } catch (err) {
-    console.error(err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[documents] upload failed:', msg, err);
+    if (msg.includes('ENOENT') || msg.includes('EACCES') || msg.includes('permission')) {
+      return NextResponse.json(
+        { error: 'Erro de permissão ao salvar o arquivo. Verifique a pasta uploads no servidor.' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Não foi possível enviar o arquivo. Tente novamente.' },
       { status: 500 }
