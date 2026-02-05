@@ -46,6 +46,22 @@ async function parseJsonResponse(res: Response) {
   }
 }
 
+function normalizeApiError(error: unknown): Error {
+  if (error instanceof Error) {
+    const msg = error.message?.toLowerCase() || '';
+    if (
+      msg.includes('load failed')
+      || msg.includes('failed to fetch')
+      || msg.includes('networkerror')
+      || msg.includes('network request failed')
+    ) {
+      return new Error('Falha de conexão no envio. Verifique sua internet e tente novamente.');
+    }
+    return error;
+  }
+  return new Error('Não foi possível conectar ao servidor.');
+}
+
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = API_REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -55,7 +71,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('A conexão demorou demais. Verifique o sinal de internet e tente novamente.');
     }
-    throw error;
+    throw normalizeApiError(error);
   } finally {
     clearTimeout(timeout);
   }
@@ -76,7 +92,7 @@ async function fetchJsonApi(
       const json = await parseJsonResponse(res);
       return { res, json };
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error('Não foi possível conectar ao servidor.');
+      lastError = normalizeApiError(error);
       if (attempt < retries) {
         await new Promise((r) => setTimeout(r, 700 * attempt));
       }
