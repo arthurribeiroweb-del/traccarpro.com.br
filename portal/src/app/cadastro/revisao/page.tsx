@@ -6,14 +6,6 @@ import { Suspense } from 'react';
 
 const WHATSAPP_URL = 'https://api.whatsapp.com/send/?phone=559491796309&text=' + encodeURIComponent('Olá! Tenho dúvidas sobre o cadastro TraccarPro.');
 
-const regras = [
-  'Contrato mínimo de 6 meses.',
-  'Cancelamento antes de 6 meses: multa equivalente às mensalidades restantes do período mínimo (limitada ao permitido por lei).',
-  'Ao cancelar: devolução do rastreador e do chip em até 10 dias (frete por conta do cliente).',
-  'Sem devolução, devolução incompleta ou equipamento danificado: taxa de reposição de R$ 300,00.',
-  'Atraso no pagamento: 7 dias suspende; 30 dias cancela por inadimplência.',
-];
-
 function RevisaoContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
@@ -34,20 +26,7 @@ function RevisaoContent() {
           </ul>
         </section>
 
-        {/* B) Regras importantes */}
-        <section className="mt-8 rounded-xl border border-zinc-700 bg-zinc-900/50 p-6">
-          <h2 className="text-lg font-medium text-white">Regras importantes</h2>
-          <ul className="mt-4 space-y-3 text-sm text-zinc-300">
-            {regras.map((r, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="text-amber-500">•</span>
-                {r}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* C) CTAs — fixo no mobile */}
+        {/* CTAs — fixo no mobile */}
         <div className="sticky bottom-0 left-0 right-0 z-10 mt-10 flex flex-col gap-3 bg-zinc-950/95 py-4 pb-safe md:relative md:bg-transparent md:py-0">
           <Link
             href={assinaturaHref}
@@ -63,7 +42,7 @@ function RevisaoContent() {
           </Link>
         </div>
 
-        {/* D) WhatsApp */}
+        {/* WhatsApp */}
         <p className="mt-8 text-center">
           <a
             href={WHATSAPP_URL}

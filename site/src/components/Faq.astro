@@ -19,16 +19,16 @@ const faqs = [
   { pergunta: 'O que é o alerta de radar?', resposta: 'Você recebe avisos no celular quando ultrapassar o limite de velocidade em radares cadastrados. Dirija dentro do limite e fique tranquilo.' },
 ];
 ---
-<section id="faq" class="border-b border-border/40 py-16 sm:py-20">
-  <div class="mx-auto max-w-content px-6">
+<section id="faq" class="border-b border-border/40 py-12 sm:py-20">
+  <div class="mx-auto max-w-content px-4 sm:px-6">
     <h2 class="text-center text-2xl font-semibold tracking-tight text-white sm:text-3xl">
       Perguntas frequentes
     </h2>
     <div class="mx-auto mt-12 max-w-2xl space-y-3">
       {faqs.map((faq) => (
         <details class="group rounded-xl border border-border/60 bg-surface/30">
-          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-white [&::-webkit-details-marker]:hidden">
-            <span>{faq.pergunta}</span>
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 font-medium text-white sm:px-5 [&::-webkit-details-marker]:hidden">
+            <span class="min-w-0 flex-1 break-words pr-2">{faq.pergunta}</span>
             <span class="shrink-0 text-accent transition group-open:rotate-180">▸</span>
           </summary>
           <p class="border-t border-border/40 px-5 py-4 text-sm text-[#a1a1aa]">

@@ -4,6 +4,16 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  /* Evita zoom automático em inputs no iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Evita overflow horizontal em containers flex no iOS */
+body {
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* Leaflet: Tailwind preflight reseta img (max-width etc.) e quebra os tiles do mapa */

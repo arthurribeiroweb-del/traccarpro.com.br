@@ -30,8 +30,8 @@ export async function POST(
     const docs = req.documentsJson ? JSON.parse(req.documentsJson) : [];
     const requiredKeys =
       req.type === 'PF'
-        ? ['doc_foto', 'comprovante_residencia']
-        : ['cartao_cnpj', 'doc_responsavel', 'comprovante_residencia'];
+        ? ['doc_foto', 'comprovante_residencia', 'doc_veiculo']
+        : ['cartao_cnpj', 'doc_responsavel', 'comprovante_residencia', 'doc_veiculo'];
     const hasAll = requiredKeys.every((k) => docs.some((d: { key: string }) => d.key === k));
     if (!hasAll) {
       return NextResponse.json(
@@ -43,7 +43,8 @@ export async function POST(
     const templateName = req.type === 'PJ' ? 'contract_pj.html' : 'contract_pf.html';
     const templatePath = path.join(process.cwd(), 'templates', templateName);
     const html = await readFile(templatePath, 'utf-8');
-    const filled = fillContractTemplate(html);
+    const vehicle = req.vehicleJson ? (JSON.parse(req.vehicleJson) as Record<string, string>) : null;
+    const filled = fillContractTemplate(html, undefined, vehicle);
 
     const contractDir = path.join(process.cwd(), 'uploads', id);
     const contractPath = path.join(contractDir, 'contrato.html');

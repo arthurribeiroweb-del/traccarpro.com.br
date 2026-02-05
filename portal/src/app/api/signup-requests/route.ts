@@ -70,8 +70,8 @@ export async function POST(request: Request) {
       const docs = baseData.documentsJson ? JSON.parse(baseData.documentsJson) : [];
       const requiredKeys =
         type === 'PF'
-          ? ['doc_foto', 'comprovante_residencia']
-          : ['cartao_cnpj', 'doc_responsavel', 'comprovante_residencia'];
+          ? ['doc_foto', 'comprovante_residencia', 'doc_veiculo']
+          : ['cartao_cnpj', 'doc_responsavel', 'comprovante_residencia', 'doc_veiculo'];
       const hasAll = requiredKeys.every((k) => docs.some((d: { key: string }) => d.key === k));
       if (!hasAll) {
         return NextResponse.json(

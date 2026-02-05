@@ -2,14 +2,14 @@
 const CLIENT_AREA_URL = 'https://traccarpro.com.br/login';
 ---
 <header class="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-  <div class="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-6">
-    <a href="/" class="text-xl font-semibold tracking-tight text-white">
+  <div class="mx-auto flex h-14 sm:h-16 min-h-0 max-w-content items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6" style="padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));">
+    <a href="/" class="min-w-0 shrink-0 truncate text-base font-semibold tracking-tight text-white sm:text-xl">
       TraccarPro
     </a>
-    <nav class="flex items-center gap-2 sm:gap-4">
+    <nav class="flex shrink-0 items-center gap-1.5 sm:gap-4">
       <a
         href="/cadastro"
-        class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 sm:px-5"
+        class="inline-flex min-h-[40px] min-w-0 shrink-0 items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 sm:min-h-[44px] sm:px-5 sm:text-sm"
       >
         Fazer cadastro
       </a>
@@ -17,7 +17,7 @@ const CLIENT_AREA_URL = 'https://traccarpro.com.br/login';
         href={CLIENT_AREA_URL}
         target="_self"
         rel="noopener"
-        class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:px-5"
+        class="inline-flex min-h-[40px] min-w-0 shrink-0 items-center justify-center rounded-lg bg-accent px-3 py-2 text-xs font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[44px] sm:px-5 sm:text-sm"
       >
         Acessar painel
       </a>

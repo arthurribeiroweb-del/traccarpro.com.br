@@ -160,7 +160,11 @@ export default function AdminSolicitacaoDetailPage() {
               <div>
                 <dt className="text-zinc-500">Veículo</dt>
                 <dd className="text-zinc-300">
-                  {req.vehicleJson.tipo} — {req.vehicleJson.placa} {req.vehicleJson.marcaModelo}
+                  {req.vehicleJson.tipo} — {req.vehicleJson.placa} — {req.vehicleJson.marcaModelo}
+                  {req.vehicleJson.ano && ` (${req.vehicleJson.ano})`}
+                  {req.vehicleJson.cor && ` — ${req.vehicleJson.cor}`}
+                  {req.vehicleJson.renavam && ` — Renavam: ${req.vehicleJson.renavam}`}
+                  {req.vehicleJson.chassi && ` — Chassi: ${req.vehicleJson.chassi}`}
                 </dd>
               </div>
             )}
@@ -170,18 +174,27 @@ export default function AdminSolicitacaoDetailPage() {
         <section className="mt-8 rounded-xl border border-zinc-700 bg-zinc-900/50 p-6">
           <h2 className="text-lg font-medium text-white">Documentos</h2>
           <ul className="mt-4 space-y-2">
-            {(req.documentsJson || []).map((d) => (
-              <li key={d.key}>
-                <a
-                  href={`/api/signup-requests/${id}/documents/${d.key}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline"
-                >
-                  {d.key} {d.filename && `(${d.filename})`} →
-                </a>
-              </li>
-            ))}
+            {(req.documentsJson || []).map((d) => {
+              const labels: Record<string, string> = {
+                doc_foto: 'Documento com foto (CNH/RG)',
+                comprovante_residencia: 'Comprovante de residência',
+                doc_veiculo: 'Documento do veículo (CRLV)',
+                cartao_cnpj: 'Cartão CNPJ',
+                doc_responsavel: 'Documento do responsável',
+              };
+              return (
+                <li key={d.key}>
+                  <a
+                    href={`/api/signup-requests/${id}/documents/${d.key}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline"
+                  >
+                    {labels[d.key] || d.key} {d.filename && `(${d.filename})`} →
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </section>
 

@@ -11,8 +11,8 @@ const base = [marabaSaoPaulo, novaRota, ...others].filter(Boolean);
 const routes = base.length ? base.slice(0, 5) : all.slice(0, 5);
 ---
 
-<div class="relative overflow-hidden bg-[#0f172a] rounded-b-lg simulated-map-container">
-  <div id={MAP_ID} class="h-[280px] w-full sm:h-[320px]" aria-hidden="true"></div>
+<div class="relative min-w-0 overflow-hidden bg-[#0f172a] rounded-b-lg simulated-map-container">
+  <div id={MAP_ID} class="h-[220px] min-h-[200px] w-full sm:h-[280px] md:h-[320px]" aria-hidden="true"></div>
   <span class="absolute bottom-2 left-2 rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/70 bg-black/40 backdrop-blur-sm">Simulação — dados fictícios</span>
 </div>
 

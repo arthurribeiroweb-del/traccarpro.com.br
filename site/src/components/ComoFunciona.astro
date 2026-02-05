@@ -9,14 +9,14 @@ const passos = [
   { num: 3, titulo: 'Usar', copy: 'Acesse o app e acompanhe em tempo real.' },
 ];
 ---
-<section id="como-funciona" class="border-b border-border/40 py-16 sm:py-20">
-  <div class="mx-auto max-w-content px-6">
+<section id="como-funciona" class="border-b border-border/40 py-12 sm:py-20">
+  <div class="mx-auto max-w-content px-4 sm:px-6">
     <h2 class="text-center text-2xl font-semibold tracking-tight text-white sm:text-3xl">
       Como funciona
     </h2>
     <div class="mx-auto mt-12 max-w-2xl space-y-8">
       {passos.map((p) => (
-        <div class="flex gap-6">
+        <div class="flex min-w-0 gap-4 sm:gap-6">
           <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent font-semibold">{p.num}</span>
           <div>
             <h3 class="font-medium text-white">{p.titulo}</h3>

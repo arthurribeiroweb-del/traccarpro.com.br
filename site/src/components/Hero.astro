@@ -12,41 +12,41 @@ const bullets = [
   'Histórico de viagens e replay',
 ];
 ---
-<section class="border-b border-border/40">
-  <div class="mx-auto max-w-content px-6 py-16 sm:py-24 md:py-28">
-    <div class="mx-auto max-w-2xl text-center">
-      <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+<section class="border-b border-border/40 overflow-hidden">
+  <div class="mx-auto max-w-content px-4 py-12 sm:px-6 sm:py-24 md:py-28" style="padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));">
+    <div class="mx-auto max-w-2xl min-w-0 text-center">
+      <h1 class="text-2xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
         Seu veículo sob controle.
       </h1>
-      <p class="mt-4 text-lg text-[#a1a1aa] sm:text-xl">
+      <p class="mt-3 text-base text-[#a1a1aa] sm:mt-4 sm:text-xl">
         Rastreamento em tempo real, bloqueio remoto e alertas. Simples e confiável.
       </p>
-      <ul class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-[#a1a1aa]">
+      <ul class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-sm text-[#a1a1aa] sm:mt-6 sm:gap-x-6">
         {bullets.map((b) => (
-          <li class="flex items-center gap-2">
+          <li class="flex min-w-0 shrink-0 items-center gap-2">
             <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-            {b}
+            <span class="break-words">{b}</span>
           </li>
         ))}
       </ul>
-      <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+      <div class="mt-6 flex w-full max-w-sm flex-col items-stretch gap-3 sm:mx-auto sm:mt-8 sm:max-w-none sm:flex-row sm:justify-center">
         <a
           href={WHATSAPP_CONTRATAR}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg bg-accent px-6 py-3 text-base font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
+          class="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center rounded-lg bg-accent px-6 py-3 text-base font-medium text-white transition hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
         >
           Comprar Online
         </a>
         <a
           href="/cadastro"
-          class="inline-flex min-h-[44px] w-full min-w-[44px] items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-base font-medium text-white transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 sm:w-auto"
+          class="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-base font-medium text-white transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 sm:w-auto"
         >
           Fazer cadastro
         </a>
       </div>
     </div>
-    <div class="mx-auto mt-12 max-w-4xl sm:mt-16">
+    <div class="mx-auto mt-8 w-full max-w-full px-0 sm:mt-16 sm:max-w-4xl">
       <div
         class="overflow-hidden rounded-xl border border-border bg-surface shadow-2xl"
         aria-hidden="true"
@@ -56,7 +56,7 @@ const bullets = [
           <span class="h-3 w-3 rounded-full bg-[#3f3f46]"></span>
           <span class="h-3 w-3 rounded-full bg-[#3f3f46]"></span>
         </div>
-        <div class="bg-[#0f172a]">
+        <div class="bg-[#0f172a] min-w-0">
           <SimulatedMap />
         </div>
       </div>

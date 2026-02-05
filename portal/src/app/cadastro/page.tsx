@@ -114,7 +114,16 @@ const defaultForm = {
   email: '',
   phone: '',
   address: { cep: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '' },
-  vehicle: { tipo: '', placa: '', marcaModelo: '', ano: '', cor: '', observacoes: '' },
+  vehicle: {
+    tipo: '',
+    placa: '',
+    marcaModelo: '',
+    ano: '',
+    cor: '',
+    renavam: '',
+    chassi: '',
+    observacoes: '',
+  },
   documents: [] as { key: string; path?: string; filename: string; size: number; pending?: boolean }[],
   acceptedLgpd: false,
 };
@@ -192,6 +201,14 @@ export default function CadastroWizardPage() {
     } else if (!isValidBrazilPlate(form.vehicle.placa)) {
       e.placa = 'Placa inválida. Use ABC-1234 (antiga) ou ABC1D23 (Mercosul).';
     }
+    if (!form.vehicle.marcaModelo?.trim()) e.marcaModelo = 'Marca/Modelo é obrigatório';
+    if (!form.vehicle.ano?.trim()) e.ano = 'Ano é obrigatório';
+    if (!form.vehicle.cor?.trim()) e.cor = 'Cor é obrigatória';
+    if (!form.vehicle.renavam?.trim()) e.renavam = 'Renavam é obrigatório';
+    const renavamNum = form.vehicle.renavam?.replace(/\D/g, '');
+    if (renavamNum && (renavamNum.length < 9 || renavamNum.length > 11)) {
+      e.renavam = 'Renavam deve ter 9 ou 11 dígitos';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -208,6 +225,7 @@ export default function CadastroWizardPage() {
       if (!hasDoc('doc_responsavel')) e.doc_responsavel = 'Documento do responsável é obrigatório';
       if (!hasDoc('comprovante_residencia')) e.comprovante = 'Comprovante de endereço é obrigatório';
     }
+    if (!hasDoc('doc_veiculo')) e.doc_veiculo = 'Documento do veículo (CRLV) é obrigatório';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -976,20 +994,31 @@ function Step2Form({
           type="text"
           value={form.vehicle.marcaModelo}
           onChange={(e) => setForm({ vehicle: { ...form.vehicle, marcaModelo: e.target.value } })}
-          className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white"
+          placeholder="Ex: Honda CG 160, Fiat Argo"
+          className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+          aria-invalid={!!errors.marcaModelo}
+          aria-describedby={errors.marcaModelo ? 'marcaModelo-error' : undefined}
         />
+        {errors.marcaModelo && (
+          <p id="marcaModelo-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.marcaModelo}</p>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="ano" className="block text-sm text-zinc-400">Ano</label>
+          <label htmlFor="ano" className="block text-sm text-zinc-400">Ano/Modelo</label>
           <input
             id="ano"
             type="text"
             value={form.vehicle.ano}
-            onChange={(e) => setForm({ vehicle: { ...form.vehicle, ano: e.target.value } })}
-            placeholder="2024"
-            className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white"
+            onChange={(e) => setForm({ vehicle: { ...form.vehicle, ano: e.target.value.replace(/\D/g, '').slice(0, 4) } })}
+            placeholder="Ex: 2024"
+            maxLength={4}
+            inputMode="numeric"
+            className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+            aria-invalid={!!errors.ano}
+            aria-describedby={errors.ano ? 'ano-error' : undefined}
           />
+          {errors.ano && <p id="ano-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.ano}</p>}
         </div>
         <div>
           <label htmlFor="cor" className="block text-sm text-zinc-400">Cor</label>
@@ -998,18 +1027,43 @@ function Step2Form({
             type="text"
             value={form.vehicle.cor}
             onChange={(e) => setForm({ vehicle: { ...form.vehicle, cor: e.target.value } })}
-            className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white"
+            placeholder="Ex: Preto, Branco"
+            className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+            aria-invalid={!!errors.cor}
+            aria-describedby={errors.cor ? 'cor-error' : undefined}
           />
+          {errors.cor && <p id="cor-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.cor}</p>}
         </div>
       </div>
       <div>
-        <label htmlFor="observacoes" className="block text-sm text-zinc-400">Observações</label>
-        <textarea
-          id="observacoes"
-          value={form.vehicle.observacoes}
-          onChange={(e) => setForm({ vehicle: { ...form.vehicle, observacoes: e.target.value } })}
-          rows={2}
-          className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white"
+        <label htmlFor="renavam" className="block text-sm text-zinc-400">Renavam</label>
+        <input
+          id="renavam"
+          type="text"
+          inputMode="numeric"
+          value={form.vehicle.renavam}
+          onChange={(e) => setForm({ vehicle: { ...form.vehicle, renavam: e.target.value.replace(/\D/g, '').slice(0, 11) } })}
+          placeholder="9 ou 11 dígitos (conforme CRLV)"
+          maxLength={11}
+          className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+          aria-invalid={!!errors.renavam}
+          aria-describedby={errors.renavam ? 'renavam-error' : 'renavam-help'}
+        />
+        <p id="renavam-help" className="mt-1 text-xs text-zinc-500">Encontrado no documento do veículo (CRLV).</p>
+        {errors.renavam && (
+          <p id="renavam-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.renavam}</p>
+        )}
+      </div>
+      <div>
+        <label htmlFor="chassi" className="block text-sm text-zinc-400">Chassi (opcional)</label>
+        <input
+          id="chassi"
+          type="text"
+          value={form.vehicle.chassi}
+          onChange={(e) => setForm({ vehicle: { ...form.vehicle, chassi: e.target.value.toUpperCase().slice(0, 17) } })}
+          placeholder="17 caracteres alfanuméricos"
+          maxLength={17}
+          className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
         />
       </div>
     </div>
@@ -1041,11 +1095,13 @@ function Step3Form({
       ? [
           { key: 'doc_foto', label: 'Documento com foto (CNH ou RG)' },
           { key: 'comprovante_residencia', label: 'Comprovante de residência (últimos 90 dias)' },
+          { key: 'doc_veiculo', label: 'Documento do veículo (CRLV) — foto ou PDF' },
         ]
       : [
           { key: 'cartao_cnpj', label: 'Cartão CNPJ (ou comprovante de inscrição)' },
           { key: 'doc_responsavel', label: 'Documento do responsável (CNH/RG)' },
           { key: 'comprovante_residencia', label: 'Comprovante de endereço' },
+          { key: 'doc_veiculo', label: 'Documento do veículo (CRLV) — foto ou PDF' },
         ];
 
   const isAllowedFile = (mime: string) => {
@@ -1197,6 +1253,8 @@ function Step4Form({
           </li>
           <li>
             Veículo: {form.vehicle.tipo} — {form.vehicle.placa} {form.vehicle.marcaModelo && `— ${form.vehicle.marcaModelo}`}
+            {form.vehicle.ano && ` (${form.vehicle.ano})`} {form.vehicle.cor && `— ${form.vehicle.cor}`}
+            {form.vehicle.renavam && ` — Renavam: ${form.vehicle.renavam}`}
           </li>
         </ul>
         <p className="mt-2 text-sm text-zinc-500">Use o botão &quot;Voltar&quot; abaixo para editar.</p>
