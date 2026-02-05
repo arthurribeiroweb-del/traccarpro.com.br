@@ -430,7 +430,7 @@ export default function CadastroWizardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100" data-deploy="v2-2026-02-05">
       <div className="mx-auto max-w-2xl px-6 py-12">
         <h1 className="text-2xl font-semibold text-white">Cadastro para Contrato TraccarPro</h1>
         <p className="mt-1 text-sm text-zinc-400">

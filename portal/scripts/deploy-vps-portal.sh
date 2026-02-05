@@ -19,7 +19,8 @@ npm install
 echo ">>> Prisma generate"
 npx prisma generate
 
-echo ">>> Build"
+echo ">>> Limpando cache e Build (força rebuild completo)"
+rm -rf .next
 npm run build
 
 echo ">>> PM2 restart portal"
