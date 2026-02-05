@@ -44,7 +44,31 @@ export async function POST(
     const templatePath = path.join(process.cwd(), 'templates', templateName);
     const html = await readFile(templatePath, 'utf-8');
     const vehicle = req.vehicleJson ? (JSON.parse(req.vehicleJson) as Record<string, string>) : null;
-    const filled = fillContractTemplate(html, undefined, vehicle);
+    const address = req.addressJson ? (JSON.parse(req.addressJson) as Record<string, string>) : null;
+    const addressLine = address
+      ? [
+          address.rua,
+          address.numero,
+          address.complemento ? ` ${address.complemento}` : '',
+          address.bairro ? ` - ${address.bairro}` : '',
+          address.cidade ? `, ${address.cidade}` : '',
+          address.uf ? `/${address.uf}` : '',
+          address.cep ? `, CEP ${address.cep}` : '',
+        ].join('')
+      : '';
+    const now = new Date();
+    const dateBr = now.toLocaleDateString('pt-BR');
+    const overrides = {
+      contract_date: dateBr,
+      contract_city: address?.cidade || 'Marabá',
+      contractor_name: req.name || req.companyName || '',
+      contractor_cpf: req.cpf || '',
+      contractor_rg: '',
+      contractor_address: addressLine || '',
+      contractor_email: req.email || '',
+      contractor_phone: req.phone || '',
+    };
+    const filled = fillContractTemplate(html, overrides, vehicle);
 
     const contractDir = path.join(process.cwd(), 'uploads', id);
     const contractPath = path.join(contractDir, 'contrato.html');
