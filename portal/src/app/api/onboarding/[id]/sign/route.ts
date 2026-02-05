@@ -21,8 +21,9 @@ export async function POST(
     const acceptedContract = body.acceptedContract === true;
     const acceptedPrivacy = body.acceptedPrivacy === true;
     const acceptedComodato = body.acceptedComodato === true;
+    const acceptedImageAuth = body.acceptedImageAuth === true;
 
-    if (!acceptedContract || !acceptedPrivacy || !acceptedComodato) {
+    if (!acceptedContract || !acceptedPrivacy || !acceptedComodato || !acceptedImageAuth) {
       return NextResponse.json(
         { error: 'Todos os termos devem ser aceitos' },
         { status: 400 }

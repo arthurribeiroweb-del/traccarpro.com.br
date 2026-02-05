@@ -11,6 +11,7 @@ function AssinaturaContent() {
   const id = searchParams.get('id');
   const [acceptedContract, setAcceptedContract] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [acceptedImageAuth, setAcceptedImageAuth] = useState(false);
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -18,7 +19,7 @@ function AssinaturaContent() {
   const [contractUrl, setContractUrl] = useState<string | null>(null);
 
   const acceptedComodato = acceptedContract;
-  const allAccepted = acceptedContract && acceptedPrivacy && acceptedComodato;
+  const allAccepted = acceptedContract && acceptedPrivacy && acceptedComodato && acceptedImageAuth;
 
   useEffect(() => {
     if (!id) return;
@@ -58,6 +59,7 @@ function AssinaturaContent() {
           acceptedContract,
           acceptedPrivacy,
           acceptedComodato,
+          acceptedImageAuth,
         }),
       });
       const json = await res.json();
@@ -160,6 +162,19 @@ function AssinaturaContent() {
             />
             <span id="privacy-desc" className="text-sm text-zinc-300">
               Li e aceito a Política de Privacidade (LGPD).
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer gap-4 rounded-xl border border-zinc-700 bg-zinc-900/50 p-5 transition hover:border-zinc-600">
+            <input
+              type="checkbox"
+              checked={acceptedImageAuth}
+              onChange={(e) => setAcceptedImageAuth(e.target.checked)}
+              className="mt-1 h-5 w-5 rounded border-zinc-600 bg-zinc-800 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
+              aria-describedby="images-desc"
+            />
+            <span id="images-desc" className="text-sm text-zinc-300">
+              Autorizo o registro de imagens do veículo e da instalação para fins de execução do contrato, suporte e segurança.
             </span>
           </label>
         </div>
