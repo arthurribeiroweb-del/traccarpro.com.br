@@ -984,14 +984,27 @@ function Step3Form({
           { key: 'comprovante_residencia', label: 'Comprovante de endereço' },
         ];
 
+  const isAllowedFile = (mime: string) => {
+    if (mime.startsWith('image/')) return true;
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'application/rtf',
+      'application/vnd.oasis.opendocument.text',
+    ];
+    return allowed.includes(mime);
+  };
+
   const handleFile = async (key: string, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       setUploadError('Arquivo excede 10MB');
       return;
     }
     const mime = file.type;
-    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(mime)) {
-      setUploadError('Use PDF, JPG ou PNG');
+    if (!mime || !isAllowedFile(mime)) {
+      setUploadError('Formato não permitido. Use imagens ou documentos (PDF, DOC, DOCX, etc.)');
       return;
     }
 
@@ -1022,7 +1035,12 @@ function Step3Form({
         method: 'POST',
         body: fd,
       });
-      const json = await res.json();
+      let json: { error?: string; path?: string };
+      try {
+        json = await parseJsonResponse(res);
+      } catch {
+        throw new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
+      }
       if (!res.ok) throw new Error(json.error || 'Erro');
       const doc = { key, path: json.path, filename: file.name, size: file.size };
       setForm({
@@ -1037,7 +1055,7 @@ function Step3Form({
 
   return (
     <div className="mt-8 space-y-6">
-      <p className="text-sm text-zinc-400">Arquivos: PDF, JPG ou PNG até 10MB cada.</p>
+      <p className="text-sm text-zinc-400">Arquivos: imagens e documentos (PDF, DOC, DOCX, etc.) até 10MB cada.</p>
       {uploadError && (
         <p className="text-sm text-amber-500" role="alert">
           {uploadError}
@@ -1069,7 +1087,7 @@ function Step3Form({
               <div className="mt-2">
                 <input
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept="image/*,.pdf,.doc,.docx,.odt,.txt,.rtf"
                   disabled={!!uploading}
                   onChange={(e) => {
                     const f = e.target.files?.[0];

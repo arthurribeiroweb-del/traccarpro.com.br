@@ -4,7 +4,33 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const ALLOWED_DOCUMENT_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+  'application/rtf',
+  'application/vnd.oasis.opendocument.text',
+];
+
+function isAllowedMime(mime: string): boolean {
+  if (mime.startsWith('image/')) return true;
+  return ALLOWED_DOCUMENT_TYPES.includes(mime);
+}
+
+function getExtensionFromMime(mime: string): string {
+  const map: Record<string, string> = {
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'text/plain': 'txt',
+    'application/rtf': 'rtf',
+    'application/vnd.oasis.opendocument.text': 'odt',
+  };
+  if (map[mime]) return map[mime];
+  if (mime.startsWith('image/')) return mime.split('/')[1] || 'jpg';
+  return 'bin';
+}
 
 /** POST: upload de documento */
 export async function POST(
@@ -41,20 +67,20 @@ export async function POST(
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: 'Arquivo excede 10MB. Use PDF, JPG ou PNG até 10MB.' },
+        { error: 'Arquivo excede 10MB.' },
         { status: 400 }
       );
     }
 
     const mime = file.type;
-    if (!ALLOWED_TYPES.includes(mime) && !mime.startsWith('image/')) {
+    if (!mime || !isAllowedMime(mime)) {
       return NextResponse.json(
-        { error: 'Formato não permitido. Use PDF, JPG ou PNG.' },
+        { error: 'Formato não permitido. Use imagens ou documentos (PDF, DOC, DOCX, etc.).' },
         { status: 400 }
       );
     }
 
-    const ext = mime === 'application/pdf' ? 'pdf' : mime.split('/')[1] || 'jpg';
+    const ext = getExtensionFromMime(mime);
     const filename = `${key}_${Date.now()}.${ext}`;
     const uploadDir = path.join(process.cwd(), 'uploads', id);
     await mkdir(uploadDir, { recursive: true });
