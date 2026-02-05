@@ -395,7 +395,17 @@ export default function CadastroWizardPage() {
           <Step2Form form={form} setForm={saveDraft} errors={errors} setErrors={setErrors} />
         )}
         {step === 3 && (
-          <Step3Form form={form} setForm={saveDraft} id={id} pendingFilesRef={pendingFilesRef} onEnsureId={async () => {
+          <Step3Form form={form} setForm={saveDraft} id={id} pendingFilesRef={pendingFilesRef} onInvalidId={() => {
+            setId(null);
+            try {
+              const raw = localStorage.getItem(STORAGE_KEY);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                delete parsed.id;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+              }
+            } catch { /* ignore */ }
+          }} onEnsureId={async () => {
             if (id) return id;
             setSubmitting(true);
             try {
@@ -419,7 +429,12 @@ export default function CadastroWizardPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
               });
-              const json = await res.json();
+              let json: { id?: string };
+              try {
+                json = await parseJsonResponse(res);
+              } catch {
+                return null;
+              }
               if (res.ok && json.id) {
                 setId(json.id);
                 saveDraft({ id: json.id });
@@ -960,6 +975,7 @@ function Step3Form({
   id,
   pendingFilesRef,
   onEnsureId,
+  onInvalidId,
   errors,
 }: {
   form: typeof defaultForm;
@@ -967,6 +983,7 @@ function Step3Form({
   id: string | null;
   pendingFilesRef: React.MutableRefObject<Record<string, File>>;
   onEnsureId: () => Promise<string | null>;
+  onInvalidId: () => void;
   errors: Record<string, string>;
 }) {
   const [uploading, setUploading] = useState<string | null>(null);
@@ -1041,7 +1058,18 @@ function Step3Form({
       } catch {
         throw new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
       }
-      if (!res.ok) throw new Error(json.error || 'Erro');
+      if (!res.ok) {
+        if (res.status === 404 || json.error === 'Solicitação não encontrada') {
+          onInvalidId();
+          pendingFilesRef.current = { ...pendingFilesRef.current, [key]: file };
+          setForm({
+            documents: [...form.documents.filter((d) => d.key !== key), { key, filename: file.name, size: file.size, pending: true }],
+          });
+          setUploadError('Solicitação anterior expirou. Arquivos salvos — serão enviados ao clicar em "Enviar para análise".');
+          return;
+        }
+        throw new Error(json.error || 'Erro');
+      }
       const doc = { key, path: json.path, filename: file.name, size: file.size };
       setForm({
         documents: [...form.documents.filter((d) => d.key !== key), doc],
