@@ -1,6 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
+/** Sanitiza CEP: remove tudo que não for dígito */
+function sanitizeCEP(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+const VIA_CEP_BASE = 'https://viacep.com.br/ws';
+const CEP_DEBOUNCE_MS = 400;
+const CEP_FETCH_TIMEOUT_MS = 10000;
 import Link from 'next/link';
 import { normalizePlate, isValidBrazilPlate, filterPlateInput } from '@/lib/plate';
 import {
@@ -493,6 +502,79 @@ function Step1Form({
   errors: Record<string, string>;
   setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
+  const [cepFetching, setCepFetching] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchViaCEP = useCallback(
+    async (cepRaw: string) => {
+      const cep = sanitizeCEP(cepRaw);
+      if (cep.length !== 8) return;
+
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      const controller = abortRef.current;
+      const signal = controller.signal;
+      const timeoutId = setTimeout(() => controller.abort(), CEP_FETCH_TIMEOUT_MS);
+      setCepError(null);
+      setCepFetching(true);
+
+      try {
+        const res = await fetch(`${VIA_CEP_BASE}/${cep}/json/`, {
+          signal,
+          headers: { Accept: 'application/json' },
+        });
+        const data = (await res.json()) as { erro?: boolean; logradouro?: string; bairro?: string; localidade?: string; uf?: string };
+        if (data.erro === true || !data.logradouro) {
+          setCepError('CEP não encontrado');
+          return;
+        }
+        setForm({
+          address: {
+            ...form.address,
+            rua: data.logradouro ?? '',
+            bairro: data.bairro ?? '',
+            cidade: data.localidade ?? '',
+            uf: (data.uf ?? '').toUpperCase(),
+          },
+        });
+      } catch (e) {
+        if (e instanceof Error && e.name === 'AbortError') return;
+        setCepError('Não foi possível consultar agora. Preencha manualmente.');
+      } finally {
+        clearTimeout(timeoutId);
+        setCepFetching(false);
+        abortRef.current = null;
+      }
+    },
+    [form.address, setForm]
+  );
+
+  const handleCepChange = useCallback(
+    (value: string) => {
+      const digits = sanitizeCEP(value).slice(0, 8);
+      setForm({ address: { ...form.address, cep: digits } });
+      setCepError(null);
+
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+      if (digits.length === 8) {
+        debounceRef.current = setTimeout(() => fetchViaCEP(digits), CEP_DEBOUNCE_MS);
+      }
+    },
+    [form.address, setForm, fetchViaCEP]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
   return (
     <div className="mt-8 space-y-6">
       <fieldset>
@@ -665,13 +747,30 @@ function Step1Form({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="cep" className="block text-sm text-zinc-400">CEP</label>
-            <input
-              id="cep"
-              type="text"
-              value={form.address.cep}
-              onChange={(e) => setForm({ address: { ...form.address, cep: e.target.value } })}
-              className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white"
-            />
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                id="cep"
+                type="text"
+                inputMode="numeric"
+                value={form.address.cep}
+                onChange={(e) => handleCepChange(e.target.value)}
+                placeholder="00000000"
+                maxLength={9}
+                className="flex-1 rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+                aria-describedby={cepError ? 'cep-error' : cepFetching ? 'cep-status' : undefined}
+                aria-invalid={!!cepError}
+              />
+              {cepFetching && (
+                <span id="cep-status" className="shrink-0 text-xs text-blue-400" aria-live="polite">
+                  Buscando CEP…
+                </span>
+              )}
+            </div>
+            {cepError && (
+              <p id="cep-error" className="mt-1 text-sm text-amber-500" role="alert">
+                {cepError}
+              </p>
+            )}
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="rua" className="block text-sm text-zinc-400">Rua</label>
