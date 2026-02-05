@@ -12,6 +12,7 @@ interface RequestData {
   companyName: string | null;
   responsibleName: string | null;
   cpf: string | null;
+  rg?: string | null;
   cnpj: string | null;
   responsibleCpf: string | null;
   email: string;
@@ -29,6 +30,7 @@ interface RequestData {
 interface EditForm {
   name: string;
   cpf: string;
+  rg: string;
   companyName: string;
   cnpj: string;
   responsibleName: string;
@@ -71,6 +73,7 @@ export default function AdminSolicitacaoDetailPage() {
   const buildForm = (data: RequestData): EditForm => ({
     name: data.name || '',
     cpf: data.cpf || '',
+    rg: (data as any).rg || '',
     companyName: data.companyName || '',
     cnpj: data.cnpj || '',
     responsibleName: data.responsibleName || '',
@@ -180,6 +183,7 @@ export default function AdminSolicitacaoDetailPage() {
           type: req?.type,
           name: form.name,
           cpf: form.cpf,
+          rg: form.rg,
           companyName: form.companyName,
           cnpj: form.cnpj,
           responsibleName: form.responsibleName,
@@ -313,6 +317,21 @@ export default function AdminSolicitacaoDetailPage() {
                       />
                     ) : (
                       req.cpf
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-zinc-500">RG</dt>
+                  <dd className="text-zinc-300">
+                    {editing ? (
+                      <input
+                        value={form?.rg ?? ''}
+                        onChange={(e) => setForm((prev) => prev ? { ...prev, rg: e.target.value } : prev)}
+                        className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950/40 px-3 py-1.5 text-sm text-zinc-100"
+                        placeholder="RG"
+                      />
+                    ) : (
+                      req.rg
                     )}
                   </dd>
                 </div>

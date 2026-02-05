@@ -60,6 +60,7 @@ export async function PATCH(
   const data: Record<string, any> = {};
   if ('name' in body) data.name = nullIfEmpty(body.name);
   if ('cpf' in body) data.cpf = nullIfEmpty(body.cpf);
+  if ('rg' in body) data.rg = nullIfEmpty(body.rg);
   if ('companyName' in body) data.companyName = nullIfEmpty(body.companyName);
   if ('cnpj' in body) data.cnpj = nullIfEmpty(body.cnpj);
   if ('responsibleName' in body) data.responsibleName = nullIfEmpty(body.responsibleName);

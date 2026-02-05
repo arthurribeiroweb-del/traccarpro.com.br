@@ -63,7 +63,7 @@ export async function POST(
       contract_city: address?.cidade || 'Marabá',
       contractor_name: req.name || req.companyName || '',
       contractor_cpf: req.cpf || '',
-      contractor_rg: '',
+      contractor_rg: req.rg || '',
       contractor_address: addressLine || '',
       contractor_email: req.email || '',
       contractor_phone: req.phone || '',

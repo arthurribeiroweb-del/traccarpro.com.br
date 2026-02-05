@@ -21,6 +21,7 @@ model SignupRequest {
   companyName       String?
   responsibleName   String?
   cpf               String?
+  rg                String?
   cnpj              String?
   responsibleCpf    String?
   birthDate         DateTime?

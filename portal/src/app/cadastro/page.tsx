@@ -108,6 +108,7 @@ const defaultForm = {
   companyName: '',
   responsibleName: '',
   cpf: '',
+  rg: '',
   cnpj: '',
   responsibleCpf: '',
   birthDate: '',
@@ -174,6 +175,7 @@ export default function CadastroWizardPage() {
       if (!form.name?.trim()) e.name = 'Nome completo é obrigatório';
       if (!form.cpf?.trim()) e.cpf = 'CPF é obrigatório';
       else if (!isValidCPF(form.cpf)) e.cpf = 'CPF inválido. Verifique os dígitos.';
+      if (!form.rg?.trim()) e.rg = 'RG é obrigatório';
     } else {
       if (!form.companyName?.trim()) e.companyName = 'Razão social é obrigatória';
       if (!form.cnpj?.trim()) e.cnpj = 'CNPJ é obrigatório';
@@ -253,6 +255,7 @@ export default function CadastroWizardPage() {
             companyName: form.companyName,
             responsibleName: form.responsibleName,
             cpf: form.cpf,
+            rg: form.rg,
             cnpj: form.cnpj,
             responsibleCpf: form.responsibleCpf,
             birthDate: form.birthDate || null,
@@ -304,6 +307,7 @@ export default function CadastroWizardPage() {
               companyName: form.companyName,
               responsibleName: form.responsibleName,
               cpf: form.cpf,
+              rg: form.rg,
               cnpj: form.cnpj,
               responsibleCpf: form.responsibleCpf,
               birthDate: form.birthDate || null,
@@ -346,6 +350,7 @@ export default function CadastroWizardPage() {
         companyName: form.companyName?.trim(),
         responsibleName: form.responsibleName?.trim(),
         cpf: form.type === 'PF' ? normalizeCPF(form.cpf) : undefined,
+        rg: form.type === 'PF' ? form.rg?.trim() : undefined,
         cnpj: form.cnpj,
         responsibleCpf: form.type === 'PJ' ? normalizeCPF(form.responsibleCpf || '') : undefined,
         birthDate: form.birthDate || null,
@@ -385,6 +390,7 @@ export default function CadastroWizardPage() {
         companyName: form.companyName,
         responsibleName: form.responsibleName,
         cpf: form.cpf,
+        rg: form.rg,
         cnpj: form.cnpj,
         responsibleCpf: form.responsibleCpf,
         birthDate: form.birthDate || null,
@@ -486,6 +492,7 @@ export default function CadastroWizardPage() {
                 companyName: form.companyName,
                 responsibleName: form.responsibleName,
                 cpf: form.cpf,
+                rg: form.rg,
                 cnpj: form.cnpj,
                 responsibleCpf: form.responsibleCpf,
                 birthDate: form.birthDate || null,
@@ -715,6 +722,20 @@ function Step1Form({
               aria-describedby={errors.cpf ? 'cpf-error' : undefined}
             />
             {errors.cpf && <p id="cpf-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.cpf}</p>}
+          </div>
+          <div>
+            <label htmlFor="rg" className="block text-sm text-zinc-400">RG</label>
+            <input
+              id="rg"
+              type="text"
+              value={form.rg}
+              onChange={(e) => setForm({ rg: e.target.value })}
+              placeholder="Ex: 12.345.678-9"
+              className="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500"
+              aria-invalid={!!errors.rg}
+              aria-describedby={errors.rg ? 'rg-error' : undefined}
+            />
+            {errors.rg && <p id="rg-error" className="mt-1 text-sm text-amber-500" role="alert">{errors.rg}</p>}
           </div>
           <div>
             <label htmlFor="birthDate" className="block text-sm text-zinc-400">Data de nascimento</label>
@@ -1247,6 +1268,7 @@ function Step4Form({
         <ul className="mt-4 space-y-1 text-sm text-zinc-400">
           <li>{form.type === 'PF' ? form.name : form.companyName}</li>
           <li>{form.type === 'PF' ? `CPF: ${form.cpf}` : `CNPJ: ${form.cnpj}`}</li>
+          {form.type === 'PF' && <li>{`RG: ${form.rg}`}</li>}
           <li>{form.email} • {form.phone}</li>
           <li>
             {form.address.rua}, {form.address.numero} — {form.address.bairro}, {form.address.cidade}/{form.address.uf}

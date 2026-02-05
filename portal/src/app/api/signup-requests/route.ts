@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       companyName: body.companyName as string | undefined,
       responsibleName: body.responsibleName as string | undefined,
       cpf: body.cpf as string | undefined,
+      rg: body.rg as string | undefined,
       cnpj: body.cnpj as string | undefined,
       responsibleCpf: body.responsibleCpf as string | undefined,
       birthDate: body.birthDate ? new Date(body.birthDate) : null,
@@ -40,9 +41,9 @@ export async function POST(request: Request) {
     if (isSubmit) {
       // Validação de envio
       if (type === 'PF') {
-        if (!baseData.name?.trim() || !baseData.cpf?.trim()) {
+        if (!baseData.name?.trim() || !baseData.cpf?.trim() || !baseData.rg?.trim()) {
           return NextResponse.json(
-            { error: 'Nome e CPF são obrigatórios para Pessoa Física' },
+            { error: 'Nome, CPF e RG são obrigatórios para Pessoa Física' },
             { status: 400 }
           );
         }
