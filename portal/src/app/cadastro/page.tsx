@@ -27,6 +27,8 @@ import {
 
 const STORAGE_KEY = 'cadastroDraft';
 const STEPS = ['Identificação', 'Veículo', 'Documentos', 'Revisão & Envio'];
+const API_REQUEST_TIMEOUT_MS = 20000;
+const API_UPLOAD_TIMEOUT_MS = 90000;
 
 const WHATSAPP_URL =
   'https://api.whatsapp.com/send/?phone=559491796309&text=' +
@@ -35,13 +37,53 @@ const WHATSAPP_URL =
 async function parseJsonResponse(res: Response) {
   const text = await res.text();
   if (text.trim().startsWith('<')) {
-    throw new Error('O servidor não respondeu corretamente. Verifique se o banco de dados está rodando e se a migration foi executada (npx prisma migrate dev).');
+    throw new Error('O servidor retornou uma resposta inválida. Tente novamente em alguns segundos.');
   }
   try {
     return JSON.parse(text);
   } catch {
     throw new Error('Resposta inválida do servidor. Tente novamente.');
   }
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = API_REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('A conexão demorou demais. Verifique o sinal de internet e tente novamente.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchJsonApi(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  options: { timeoutMs?: number; retries?: number } = {}
+) {
+  const timeoutMs = options.timeoutMs ?? API_REQUEST_TIMEOUT_MS;
+  const retries = options.retries ?? 1;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetchWithTimeout(input, init, timeoutMs);
+      const json = await parseJsonResponse(res);
+      return { res, json };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Não foi possível conectar ao servidor.');
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 700 * attempt));
+      }
+    }
+  }
+
+  throw lastError ?? new Error('Não foi possível concluir a comunicação com o servidor.');
 }
 
 const defaultForm = {
@@ -186,12 +228,11 @@ export default function CadastroWizardPage() {
             vehicleJson: form.vehicle,
             documentsJson: JSON.stringify(form.documents),
           };
-          const res = await fetch('/api/signup-requests', {
+          const { res, json } = await fetchJsonApi('/api/signup-requests', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
-          const json = await res.json();
           if (res.ok && json.id) {
             setId(json.id);
             saveDraft({ id: json.id });
@@ -220,7 +261,7 @@ export default function CadastroWizardPage() {
       const pendingKeys = Object.keys(pending);
       if (pendingKeys.length > 0) {
         if (!currentId) {
-          const res = await fetch('/api/signup-requests', {
+          const { res, json } = await fetchJsonApi('/api/signup-requests', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -240,7 +281,6 @@ export default function CadastroWizardPage() {
               formaPagamento: 'cartao',
             }),
           });
-          const json = await parseJsonResponse(res);
           if (!res.ok || !json.id) throw new Error(json.error || 'Erro ao salvar');
           currentId = json.id;
           setId(currentId);
@@ -250,12 +290,11 @@ export default function CadastroWizardPage() {
           const fd = new FormData();
           fd.append('file', file);
           fd.append('key', key);
-          const res = await fetch(`/api/signup-requests/${currentId}/documents`, {
+          const { res, json } = await fetchJsonApi(`/api/signup-requests/${currentId}/documents`, {
             method: 'POST',
             body: fd,
-          });
-          if (!res.ok) throw new Error('Erro ao enviar arquivo');
-          const json = await parseJsonResponse(res);
+          }, { timeoutMs: API_UPLOAD_TIMEOUT_MS, retries: 2 });
+          if (!res.ok) throw new Error(json.error || 'Erro ao enviar arquivo');
           documents = [...documents.filter((d) => d.key !== key), { key, path: json.path, filename: file.name, size: file.size }];
         }
         pendingFilesRef.current = {};
@@ -285,12 +324,11 @@ export default function CadastroWizardPage() {
         acceptedLgpd: form.acceptedLgpd,
       };
 
-      const res = await fetch('/api/signup-requests', {
+      const { res, json } = await fetchJsonApi('/api/signup-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      });
-      const json = await parseJsonResponse(res);
+      }, { retries: 2 });
       if (!res.ok) throw new Error(json.error || 'Erro ao enviar');
 
       setId(json.id || currentId);
@@ -323,12 +361,11 @@ export default function CadastroWizardPage() {
         documentsJson: JSON.stringify(form.documents),
       };
 
-      const res = await fetch('/api/signup-requests', {
+      const { res, json } = await fetchJsonApi('/api/signup-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
       if (res.ok && json.id) {
         setId(json.id);
         saveDraft({ id: json.id });
@@ -424,17 +461,11 @@ export default function CadastroWizardPage() {
                 vehicleJson: form.vehicle,
                 documentsJson: JSON.stringify(form.documents),
               };
-              const res = await fetch('/api/signup-requests', {
+              const { res, json } = await fetchJsonApi('/api/signup-requests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
-              });
-              let json: { id?: string };
-              try {
-                json = await parseJsonResponse(res);
-              } catch {
-                return null;
-              }
+              }, { retries: 2 });
               if (res.ok && json.id) {
                 setId(json.id);
                 saveDraft({ id: json.id });
@@ -1044,32 +1075,14 @@ function Step3Form({
 
     setUploadError(null);
     setUploading(key);
-    const maxAttempts = 3;
-    let lastError: Error | null = null;
     try {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('key', key);
-      let res: Response | null = null;
-      let json: { error?: string; path?: string } | null = null;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          res = await fetch(`/api/signup-requests/${currentId}/documents`, {
-            method: 'POST',
-            body: fd,
-          });
-          json = await parseJsonResponse(res);
-          break;
-        } catch {
-          lastError = new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
-          if (attempt < maxAttempts) {
-            await new Promise((r) => setTimeout(r, 800 * attempt));
-          }
-        }
-      }
-      if (!res || !json) {
-        throw lastError ?? new Error('O servidor não respondeu corretamente. Verifique sua conexão e tente novamente.');
-      }
+      const { res, json } = await fetchJsonApi(`/api/signup-requests/${currentId}/documents`, {
+        method: 'POST',
+        body: fd,
+      }, { timeoutMs: API_UPLOAD_TIMEOUT_MS, retries: 3 });
       if (!res.ok) {
         if (res.status === 404 || json.error === 'Solicitação não encontrada') {
           onInvalidId();
@@ -1132,6 +1145,7 @@ function Step3Form({
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) handleFile(key, f);
+                    e.currentTarget.value = '';
                   }}
                   className="block w-full text-sm text-zinc-400 file:mr-4 file:rounded file:border-0 file:bg-zinc-700 file:px-4 file:py-2 file:text-white"
                 />
