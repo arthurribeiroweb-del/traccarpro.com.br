@@ -1062,8 +1062,8 @@ function Step3Form({
   };
 
   const handleFile = async (key: string, file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Arquivo excede 10MB');
+    if (file.size > 15 * 1024 * 1024) {
+      setUploadError('Arquivo excede 15MB');
       return;
     }
     const mime = file.type;
@@ -1124,7 +1124,7 @@ function Step3Form({
 
   return (
     <div className="mt-8 space-y-6">
-      <p className="text-sm text-zinc-400">Arquivos: imagens e documentos (PDF, DOC, DOCX, etc.) até 10MB cada.</p>
+      <p className="text-sm text-zinc-400">Arquivos: imagens e documentos (PDF, DOC, DOCX, etc.) até 15MB cada.</p>
       {uploadError && (
         <p className="text-sm text-amber-500" role="alert">
           {uploadError}

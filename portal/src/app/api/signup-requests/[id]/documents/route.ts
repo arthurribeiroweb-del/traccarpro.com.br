@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 15 * 1024 * 1024; // 15MB
 const ALLOWED_DOCUMENT_TYPES = [
   'application/pdf',
   'application/msword',
@@ -20,6 +20,12 @@ function isAllowedMime(mime: string): boolean {
 
 function getExtensionFromMime(mime: string): string {
   const map: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/heic': 'heic',
+    'image/heif': 'heif',
     'application/pdf': 'pdf',
     'application/msword': 'doc',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
@@ -30,6 +36,33 @@ function getExtensionFromMime(mime: string): string {
   if (map[mime]) return map[mime];
   if (mime.startsWith('image/')) return mime.split('/')[1] || 'jpg';
   return 'bin';
+}
+
+async function compressImageIfPossible(
+  inputBuffer: Buffer,
+  mime: string
+): Promise<{ buffer: Buffer; mime: string; ext: string; compressed: boolean }> {
+  if (!mime.startsWith('image/')) {
+    return { buffer: inputBuffer, mime, ext: getExtensionFromMime(mime), compressed: false };
+  }
+
+  try {
+    const sharp = (await import('sharp')).default;
+    const outputBuffer = await sharp(inputBuffer, { failOn: 'none' })
+      .rotate()
+      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer();
+
+    // Se por algum motivo sair maior, mantemos o original.
+    if (outputBuffer.length >= inputBuffer.length) {
+      return { buffer: inputBuffer, mime, ext: getExtensionFromMime(mime), compressed: false };
+    }
+
+    return { buffer: outputBuffer, mime: 'image/jpeg', ext: 'jpg', compressed: true };
+  } catch {
+    return { buffer: inputBuffer, mime, ext: getExtensionFromMime(mime), compressed: false };
+  }
 }
 
 /** POST: upload de documento */
@@ -67,7 +100,7 @@ export async function POST(
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: 'Arquivo excede 10MB.' },
+        { error: 'Arquivo excede 15MB.' },
         { status: 400 }
       );
     }
@@ -80,13 +113,14 @@ export async function POST(
       );
     }
 
-    const ext = getExtensionFromMime(mime);
-    const filename = `${key}_${Date.now()}.${ext}`;
+    const originalBuffer = Buffer.from(await file.arrayBuffer());
+    const processed = await compressImageIfPossible(originalBuffer, mime);
+
+    const filename = `${key}_${Date.now()}.${processed.ext}`;
     const uploadDir = path.join(process.cwd(), 'uploads', id);
     await mkdir(uploadDir, { recursive: true });
     const filepath = path.join(uploadDir, filename);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filepath, buffer);
+    await writeFile(filepath, processed.buffer);
 
     const storedPath = `uploads/${id}/${filename}`;
     const docs = req.documentsJson ? JSON.parse(req.documentsJson) : [];
@@ -94,10 +128,13 @@ export async function POST(
     filtered.push({
       key,
       path: storedPath,
-      mime,
-      size: file.size,
+      mime: processed.mime,
+      size: processed.buffer.length,
       uploadedAt: new Date().toISOString(),
       filename,
+      originalFilename: file.name,
+      originalSize: file.size,
+      compressed: processed.compressed,
     });
 
     await prisma.signupRequest.update({
@@ -109,7 +146,9 @@ export async function POST(
       ok: true,
       key,
       path: storedPath,
-      size: file.size,
+      size: processed.buffer.length,
+      originalSize: file.size,
+      compressed: processed.compressed,
       message: 'Arquivo enviado com sucesso',
     });
   } catch (err) {
